@@ -44,10 +44,9 @@ class WhisperTranscriber:
             audio_data, sample_rate = self.preprocess_audio(audio_path)
             print(f"Audio loaded and preprocessed - Shape: {audio_data.shape}, Sample rate: {sample_rate}")
             
-            # Transcribe
+            # Transcribe (removed sampling_rate parameter)
             result = self.model(
                 audio_data,
-                sampling_rate=sample_rate,
                 generate_kwargs={
                     "task": "transcribe",
                     "max_new_tokens": 256

@@ -91,8 +91,8 @@ def create_interface():
         inputs=[
             gr.Audio(label="Upload Audio File", type="filepath"),
             gr.Dropdown(
-                choices=["tiny", "base", "small"],
-                value="base",
+                choices=["tiny", "base", "small", "medium", "large-v2"],  # Added larger models
+                value="large-v2",  # Set default to large-v2
                 label="Whisper Model Size"
             )
         ],
