@@ -40,8 +40,8 @@ class WhisperTranscriber:
 
     def process_options(self):
         return {
-            'max_new_tokens': 448,  # Increase token limit
-            'chunk_length_s': 30,   # Process longer chunks
-            'stride_length_s': 5,   # Overlap between chunks
-            'return_timestamps': False  # Disable if not needed for better performance
+            'max_new_tokens': 1024,  # Increased from 448 for longer transcriptions
+            'chunk_length_s': 60,    # Doubled chunk length to handle longer segments
+            'stride_length_s': 10,   # Increased overlap for better continuity
+            'return_timestamps': False
         }
