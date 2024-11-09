@@ -9,6 +9,7 @@ import torch
 import torchaudio
 import soundfile as sf
 import librosa
+import shutil
 
 # Set up logging
 logging.basicConfig(
@@ -42,8 +43,11 @@ def create_interface():
             progress(0, desc="Starting processing")
             logging.info(f"Processing file: {audio_file}")
             
+            # Create temporary directory for processing
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_audio_path = os.path.join(temp_dir, "input.wav")
+                vocals_output_path = os.path.join(temp_dir, "vocals.wav")
+                
                 # Convert to WAV first
                 audio, sr = librosa.load(audio_file, sr=44100)
                 sf.write(temp_audio_path, audio, sr)
@@ -52,26 +56,28 @@ def create_interface():
                 progress(0.1, desc="Separating vocals")
                 try:
                     vocals_path = processor.separate_vocals(temp_audio_path)
-                    temp_files.append(vocals_path)
+                    # Copy vocals to a known path
+                    shutil.copy2(vocals_path, vocals_output_path)
+                    temp_files.append(vocals_output_path)
                 except RuntimeError as e:
                     logging.error(f"Vocal separation failed: {str(e)}")
                     return None, f"Vocal separation failed: {str(e)}"
                 
-                if not os.path.exists(vocals_path):
+                if not os.path.exists(vocals_output_path):
                     raise FileNotFoundError("Vocals file was not created")
                 
-                logging.info(f"Vocals separated: {vocals_path}")
+                logging.info(f"Vocals separated: {vocals_output_path}")
                 progress(0.5, desc="Vocals separated")
                 
                 if whisper_model != transcriber.model_size:
                     transcriber.__init__(whisper_model)
                 
                 progress(0.75, desc="Transcribing")
-                lyrics = transcriber.transcribe(vocals_path)
-                logging.info(f"Transcription length: {len(lyrics)} characters")
+                lyrics = transcriber.transcribe(vocals_output_path)
                 progress(1.0, desc="Processing complete")
                 
-                return vocals_path, lyrics
+                # Return both the vocals file and lyrics
+                return vocals_output_path, lyrics
                 
         except Exception as e:
             error_message = f"Processing error: {str(e)}"
