@@ -2,7 +2,7 @@ import torch
 from transformers import pipeline
 import soundfile as sf
 import numpy as np
-            from scipy.signal import resample
+from scipy.signal import resample
 
 class WhisperTranscriber:
     def __init__(self, model_size="large-v2"):
