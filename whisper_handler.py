@@ -20,7 +20,7 @@ class WhisperTranscriber:
             print(f"Initial waveform shape: {waveform.shape}, Sample rate: {sample_rate}")
             
             # Convert to mono if stereo
-            if len(waveform.shape) > 1 and waveform.shape[0] > 1:
+            if len(waveform.shape) > 1 and waveform.shape > 1:
                 waveform = waveform.mean(dim=0, keepdim=True)
                 print(f"After mono conversion shape: {waveform.shape}")
             
@@ -37,8 +37,9 @@ class WhisperTranscriber:
             
             # Chunk audio into 30-second segments
             chunk_length_samples = 30 * 16000  # 30 seconds at 16kHz
+            chunk_overlap_samples = chunk_length_samples // 2  # 50% overlap
             
-            # Process each chunk with overlap
+            # Process each chunk
             transcriptions = []
             start_idx = 0
             
@@ -61,8 +62,8 @@ class WhisperTranscriber:
                 if transcription:  # Only add non-empty transcriptions
                     transcriptions.append(transcription)
                 
-                # Move to next chunk with overlap
-                start_idx += chunk_length_samples // 2  # 50% overlap
+                # Move to next chunk with overlap, ensuring valid step
+                start_idx = min(start_idx + chunk_overlap_samples, len(audio_data))
             
             # Combine transcriptions
             full_transcription = ' '.join(transcriptions)
