@@ -76,7 +76,7 @@ class DemucsProcessor:
 
 def configure_model():
     return {
-        "segment_size": 8 if torch.cuda.is_available() else 4,
+        "segment_size": 16 if torch.cuda.is_available() else 4,  # Increased from 8
         "overlap": 0.1,
         "sample_rate": 44100,
         "channels": 2

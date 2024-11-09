@@ -42,7 +42,6 @@ def create_interface():
             progress(0, desc="Starting processing")
             logging.info(f"Processing file: {audio_file}")
             
-            # Create temporary directory for processing
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_audio_path = os.path.join(temp_dir, "input.wav")
                 # Convert to WAV first
@@ -67,7 +66,7 @@ def create_interface():
                 if whisper_model != transcriber.model_size:
                     transcriber.__init__(whisper_model)
                 
-                progress(0.6, desc="Transcribing lyrics")
+                progress(0.75, desc="Transcribing")
                 lyrics = transcriber.transcribe(vocals_path)
                 progress(1.0, desc="Processing complete")
                 
