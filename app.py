@@ -68,6 +68,7 @@ def create_interface():
                 
                 progress(0.75, desc="Transcribing")
                 lyrics = transcriber.transcribe(vocals_path)
+                logging.info(f"Transcription length: {len(lyrics)} characters")
                 progress(1.0, desc="Processing complete")
                 
                 return vocals_path, lyrics
@@ -97,7 +98,7 @@ def create_interface():
         ],
         outputs=[
             gr.Audio(label="Isolated Vocals"),
-            gr.Textbox(label="Transcribed Lyrics")
+            gr.Textbox(label="Transcribed Lyrics", lines=10, max_lines=20)
         ],
         title="Audio Lyrics Extractor",
         description="Upload an audio file to extract vocals and transcribe lyrics",
