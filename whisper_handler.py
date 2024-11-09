@@ -20,7 +20,7 @@ class WhisperTranscriber:
             print(f"Initial waveform shape: {waveform.shape}, Sample rate: {sample_rate}")
             
             # Convert to mono if stereo
-            if len(waveform.shape) > 1 and waveform.shape > 1:
+            if len(waveform.shape) > 1 and waveform.shape[0] > 1:
                 waveform = waveform.mean(dim=0, keepdim=True)
                 print(f"After mono conversion shape: {waveform.shape}")
             
