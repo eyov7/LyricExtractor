@@ -20,7 +20,7 @@ class WhisperTranscriber:
             print(f"Initial waveform shape: {waveform.shape}, Sample rate: {sample_rate}")
             
             # Convert to mono if stereo
-            if len(waveform.shape) > 1 and waveform.shape[0] > 1:
+            if len(waveform.shape) > 1 and waveform.shape > 1:
                 waveform = waveform.mean(dim=0, keepdim=True)
                 print(f"After mono conversion shape: {waveform.shape}")
             
@@ -36,20 +36,21 @@ class WhisperTranscriber:
             print(f"Audio data shape before chunking: {audio_data.shape}")
             
             # Chunk audio into 30-second segments
-            chunk_length = 30 * 16000  # 30 seconds at 16kHz
-            total_chunks = int(np.ceil(len(audio_data) / chunk_length))
+            chunk_length_samples = 30 * 16000  # 30 seconds at 16kHz
             
             # Process each chunk with overlap
             transcriptions = []
-            for i in range(total_chunks):
-                start_idx = i * chunk_length
-                end_idx = min(start_idx + chunk_length, len(audio_data))
+            start_idx = 0
+            
+            while start_idx < len(audio_data):
+                end_idx = min(start_idx + chunk_length_samples, len(audio_data))
                 chunk = audio_data[start_idx:end_idx]
                 
                 # Pad last chunk if necessary
-                if len(chunk) < chunk_length:
-                    chunk = np.pad(chunk, (0, chunk_length - len(chunk)))
+                if len(chunk) < chunk_length_samples:
+                    chunk = np.pad(chunk, (0, chunk_length_samples - len(chunk)))
                 
+                print(f"Processing chunk {len(transcriptions) + 1}, length: {len(chunk)}")
                 # Transcribe chunk
                 result = self.model(
                     chunk,
@@ -59,6 +60,9 @@ class WhisperTranscriber:
                 transcription = result["text"].strip()
                 if transcription:  # Only add non-empty transcriptions
                     transcriptions.append(transcription)
+                
+                # Move to next chunk with overlap
+                start_idx += chunk_length_samples // 2  # 50% overlap
             
             # Combine transcriptions
             full_transcription = ' '.join(transcriptions)
