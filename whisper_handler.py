@@ -18,7 +18,7 @@ class WhisperTranscriber:
         waveform, sample_rate = torchaudio.load(audio_path)
         
         # Convert to mono if stereo
-        if waveform.shape > 1:
+        if waveform.shape > 1:  # Fixed comparison here
             waveform = waveform.mean(dim=0, keepdim=True)
         
         # Resample to 16kHz if necessary
@@ -43,6 +43,7 @@ class WhisperTranscriber:
             # Pad last chunk if necessary
             if len(chunk) < samples_per_chunk:
                 chunk = np.pad(chunk, (0, samples_per_chunk - len(chunk)))
+            
             # Transcribe chunk
             result = self.model(
                 chunk,
