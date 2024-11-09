@@ -3,7 +3,7 @@ import torch
 import torchaudio
 
 class WhisperTranscriber:
-    def __init__(self, model_size="base"):
+    def __init__(self, model_size="large"):
         self.model_size = model_size
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = pipeline(
@@ -40,8 +40,8 @@ class WhisperTranscriber:
 
     def process_options(self):
         return {
-            'max_new_tokens': 1024,  # Increased from 448 for longer transcriptions
-            'chunk_length_s': 60,    # Doubled chunk length to handle longer segments
-            'stride_length_s': 10,   # Increased overlap for better continuity
+            'max_new_tokens': 2048,  # Increased for longer transcriptions
+            'chunk_length_s': 120,   # Increased chunk length for longer segments
+            'stride_length_s': 30,   # Increased overlap for better continuity
             'return_timestamps': False
         }
