@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import gradio as gr
+import shutil
 from demucs_handler import DemucsProcessor, check_dependencies, configure_model
 from whisper_handler import WhisperTranscriber
 import tempfile
@@ -10,6 +11,7 @@ import torchaudio
 import soundfile as sf
 import librosa
 import numpy as np
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -48,30 +50,22 @@ def create_interface():
                 
                 # Convert to WAV first
                 audio, sr = librosa.load(audio_file, sr=44100)
-                sf.write(temp_audio_path, audio, sr)
+                # Fixed: use samplerate instead of sr
+                sf.write(temp_audio_path, audio, samplerate=sr)
                 temp_files.append(temp_audio_path)
                 
                 progress(0.1, desc="Separating vocals")
                 try:
                     vocals_path = processor.separate_vocals(temp_audio_path)
-                    # Save vocals to temporary path
-                    sf.write(vocals_output_path, librosa.load(vocals_path, sr=None), sr=None)
+                    # Copy vocals to output path
+                    shutil.copy2(vocals_path, vocals_output_path)
                     temp_files.append(vocals_output_path)
                 except RuntimeError as e:
                     logging.error(f"Vocal separation failed: {str(e)}")
                     return None, f"Vocal separation failed: {str(e)}"
                 
-                if not os.path.exists(vocals_output_path):
-                    raise FileNotFoundError("Vocals file was not created")
-                
-                logging.info(f"Vocals separated: {vocals_output_path}")
-                progress(0.5, desc="Vocals separated")
-                
-                # Load the separated vocals for playback
+                # Load the processed vocals for playback
                 vocals_audio, vocals_sr = librosa.load(vocals_output_path, sr=None)
-                
-                if whisper_model != transcriber.model_size:
-                    transcriber.__init__(whisper_model)
                 
                 progress(0.75, desc="Transcribing")
                 lyrics = transcriber.transcribe(vocals_output_path)
