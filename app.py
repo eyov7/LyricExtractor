@@ -9,8 +9,7 @@ import torch
 import torchaudio
 import soundfile as sf
 import librosa
-import shutil
-
+import numpy as np
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -43,7 +42,6 @@ def create_interface():
             progress(0, desc="Starting processing")
             logging.info(f"Processing file: {audio_file}")
             
-            # Create temporary directory for processing
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_audio_path = os.path.join(temp_dir, "input.wav")
                 vocals_output_path = os.path.join(temp_dir, "vocals.wav")
@@ -56,8 +54,8 @@ def create_interface():
                 progress(0.1, desc="Separating vocals")
                 try:
                     vocals_path = processor.separate_vocals(temp_audio_path)
-                    # Copy vocals to a known path
-                    shutil.copy2(vocals_path, vocals_output_path)
+                    # Save vocals to temporary path
+                    sf.write(vocals_output_path, librosa.load(vocals_path, sr=None), sr=None)
                     temp_files.append(vocals_output_path)
                 except RuntimeError as e:
                     logging.error(f"Vocal separation failed: {str(e)}")
@@ -69,6 +67,9 @@ def create_interface():
                 logging.info(f"Vocals separated: {vocals_output_path}")
                 progress(0.5, desc="Vocals separated")
                 
+                # Load the separated vocals for playback
+                vocals_audio, vocals_sr = librosa.load(vocals_output_path, sr=None)
+                
                 if whisper_model != transcriber.model_size:
                     transcriber.__init__(whisper_model)
                 
@@ -76,8 +77,8 @@ def create_interface():
                 lyrics = transcriber.transcribe(vocals_output_path)
                 progress(1.0, desc="Processing complete")
                 
-                # Return both the vocals file and lyrics
-                return vocals_output_path, lyrics
+                # Return the audio data tuple and lyrics
+                return (vocals_sr, vocals_audio), lyrics
                 
         except Exception as e:
             error_message = f"Processing error: {str(e)}"
@@ -97,13 +98,13 @@ def create_interface():
         inputs=[
             gr.Audio(label="Upload Audio File", type="filepath"),
             gr.Dropdown(
-                choices=["tiny", "base", "small", "medium", "large-v2"],  # Added larger models
-                value="large-v2",  # Set default to large-v2
+                choices=["tiny", "base", "small", "medium", "large-v2"],
+                value="medium",
                 label="Whisper Model Size"
             )
         ],
         outputs=[
-            gr.Audio(label="Isolated Vocals"),
+            gr.Audio(label="Isolated Vocals", type="numpy"),
             gr.Textbox(label="Transcribed Lyrics", lines=10, max_lines=20)
         ],
         title="Audio Lyrics Extractor",
