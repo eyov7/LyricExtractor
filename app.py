@@ -103,7 +103,6 @@ def create_interface():
         ],
         title="Audio Lyrics Extractor",
         description="Upload an audio file to extract vocals and transcribe lyrics",
-        analytics_enabled=False
     )
     return interface
 
@@ -111,5 +110,6 @@ if __name__ == "__main__":
     if not check_dependencies():
         print("Please install missing dependencies")
         exit(1)
-    interface = create_interface()
-    interface.launch()
+    demo = create_interface()
+    demo.queue()
+    demo.launch(server_name="0.0.0.0")
